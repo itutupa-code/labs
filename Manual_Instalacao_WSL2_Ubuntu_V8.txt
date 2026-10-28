@@ -1,0 +1,244 @@
+================================================================================
+KUBERNETES CERTIFICATION LAB — V8
+MANUAL 001 — INSTALAÇÃO E VALIDAÇÃO DO WSL2 + UBUNTU 24.04 LTS
+Trilha: KCNA | KCSA | CKA
+Versão: 1.0 | Data: 28/10/2026
+================================================================================
+
+OBJETIVO
+Instalar o WSL2 com Ubuntu 24.04 LTS em cada computador Windows 11 da equipe.
+As ferramentas Docker, Kind, kubectl, Helm, Git e o ambiente de edição serão
+tratados posteriormente, dentro do contexto do Ubuntu.
+
+IMPORTANTE
+- Este documento cobre SOMENTE a instalação e a ambientação inicial do WSL2.
+- Execute os comandos marcados como [POWERSHELL] no Windows.
+- Execute os comandos marcados como [UBUNTU] dentro do Linux.
+- Não use comandos que removem distribuições existentes: isso apagaria dados.
+- Se você já utiliza WSL2, não é necessário reinstalá-lo.
+
+1. PRÉ-REQUISITOS
+-----------------
+[ ] Windows 11 atualizado
+[ ] Permissão de administrador no Windows
+[ ] Acesso à internet
+[ ] Virtualização de CPU habilitada (verificar no Gerenciador de Tarefas >
+    Desempenho > CPU > Virtualização: Habilitada)
+[ ] Espaço livre disponível (recomenda-se reservar pelo menos 40 GB para
+    o laboratório Kubernetes futuro)
+
+2. VERIFICAR INSTALAÇÃO EXISTENTE
+---------------------------------
+Abra o PowerShell COMO ADMINISTRADOR e execute:
+
+[POWERSHELL]
+    wsl --status
+    wsl --list --verbose
+    wsl --list --online
+
+Se Ubuntu-24.04 já estiver instalado na versão 2, pule para a seção 5.
+Se houver outra distribuição Linux com dados importantes, preserve-a.
+Não execute 'wsl --unregister' em distribuições existentes.
+
+3. INSTALAR WSL2 E UBUNTU 24.04 LTS
+-----------------------------------
+No PowerShell COMO ADMINISTRADOR:
+
+[POWERSHELL]
+    wsl --install -d Ubuntu-24.04
+
+Reinicie o Windows se for solicitado.
+
+Caso o nome da distribuição não seja reconhecido, confira os nomes com:
+
+[POWERSHELL]
+    wsl --list --online
+
+E utilize o nome exibido para o Ubuntu 24.04.
+
+Se o download ficar parado em 0%, uma alternativa oficial é:
+
+[POWERSHELL]
+    wsl --install --web-download -d Ubuntu-24.04
+
+Não execute novamente a instalação se a distribuição já tiver sido criada.
+
+4. PRIMEIRO ACESSO AO UBUNTU
+----------------------------
+Abra 'Ubuntu 24.04' pelo menu Iniciar, ou execute no PowerShell:
+
+[POWERSHELL]
+    wsl -d Ubuntu-24.04
+
+Na primeira abertura, crie:
+- Nome de usuário Linux, por exemplo: labuser (sem espaços)
+- Senha Linux forte, que será utilizada pelo sudo
+
+A senha não aparece na tela durante a digitação: é normal.
+A conta Linux é independente da conta do Windows.
+
+5. CONFIRMAR QUE O UBUNTU UTILIZA WSL2
+--------------------------------------
+No PowerShell:
+
+[POWERSHELL]
+    wsl --list --verbose
+    wsl --version
+    wsl --status
+
+Resultado esperado: Ubuntu-24.04 com VERSION = 2.
+
+Se a versão estiver como 1, execute:
+
+[POWERSHELL]
+    wsl --set-version Ubuntu-24.04 2
+
+Para definir a versão padrão de instalações futuras:
+
+[POWERSHELL]
+    wsl --set-default-version 2
+
+Para definir Ubuntu 24.04 como distribuição padrão, se desejado:
+
+[POWERSHELL]
+    wsl --set-default Ubuntu-24.04
+
+6. ATUALIZAR O WSL E O UBUNTU
+-----------------------------
+No PowerShell:
+
+[POWERSHELL]
+    wsl --update
+
+No terminal do Ubuntu:
+
+[UBUNTU]
+    sudo apt update
+    sudo apt upgrade -y
+    sudo apt install -y ca-certificates curl wget unzip tar
+
+Confira a distribuição:
+
+[UBUNTU]
+    cat /etc/os-release
+    uname -r
+    whoami
+    pwd
+
+O arquivo /etc/os-release deverá informar Ubuntu 24.04 LTS.
+
+7. ORGANIZAR O DIRETÓRIO DE ESTUDOS
+------------------------------------
+No Ubuntu:
+
+[UBUNTU]
+    mkdir -p ~/labs/kubernetes/{kcna,kcsa,cka,setup}
+    cd ~/labs/kubernetes
+    pwd
+    ls -la
+
+Usaremos este caminho para os exercícios futuros.
+Preferir arquivos de projetos no sistema Linux (/home/usuario/...)
+em vez de /mnt/c/... para melhor compatibilidade e desempenho.
+
+8. COMANDOS ÚTEIS DO WSL
+-------------------------
+Abrir a distribuição:
+
+[POWERSHELL]
+    wsl -d Ubuntu-24.04
+
+Listar distribuições:
+
+[POWERSHELL]
+    wsl -l -v
+
+Desligar todas as instâncias do WSL:
+
+[POWERSHELL]
+    wsl --shutdown
+
+Sair de uma sessão Ubuntu:
+
+[UBUNTU]
+    exit
+
+Abrir arquivos da pasta Linux no Explorador do Windows (se necessário):
+
+[UBUNTU]
+    explorer.exe .
+
+9. PROBLEMAS COMUNS
+--------------------
+A) 'Virtualization' desabilitada:
+   - Habilitar Intel VT-x/AMD-V na BIOS/UEFI conforme fabricante.
+   - Conferir no Gerenciador de Tarefas.
+
+B) WSL informa ausência de componente de máquina virtual:
+   - No PowerShell como Administrador, habilite os recursos:
+
+[POWERSHELL]
+    dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+    dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+
+   - Reinicie o Windows e repita a verificação/instalação.
+
+C) Download parado em 0%:
+   - Tente a opção --web-download descrita na seção 3.
+
+D) Ubuntu não abre após atualização:
+   - Feche sessões Linux e, no PowerShell, execute:
+
+[POWERSHELL]
+    wsl --shutdown
+    wsl --update
+
+   - Abra o Ubuntu novamente. Se persistir, registre a mensagem de erro.
+
+10. NOTA SOBRE VS CODE
+----------------------
+A instalação do VS Code não faz parte deste manual.
+Para a etapa seguinte, existem duas alternativas:
+
+A) RECOMENDADA: VS Code gráfico instalado no Windows, integrado ao Ubuntu com
+   a extensão WSL. As ferramentas, terminal e arquivos de projeto ficam no
+   Ubuntu. Esse é o fluxo oficial mais simples para desenvolvimento WSL.
+
+B) EDITOR TODO NO LINUX: instalar uma opção baseada em navegador, como
+   code-server, dentro do Ubuntu. É um produto diferente do VS Code desktop
+   oficial, sujeito a configuração adicional e revisão de segurança.
+
+Não instale automaticamente o pacote .deb do VS Code desktop no Ubuntu/WSL
+sem antes decidir qual das duas arquiteturas será adotada pela equipe.
+
+11. CHECKLIST FINAL — AMBIENTE APROVADO
+---------------------------------------
+[ ] Comando 'wsl --list --verbose' mostra Ubuntu-24.04 na versão 2
+[ ] Ubuntu inicia normalmente
+[ ] Usuário Linux e senha criados
+[ ] 'sudo apt update' executa sem erros
+[ ] 'cat /etc/os-release' identifica Ubuntu 24.04 LTS
+[ ] Diretório ~/labs/kubernetes criado
+[ ] Virtualização habilitada
+
+ENTREGA DO LAB-000 (AMBIENTAÇÃO):
+Registrar os resultados (sem senhas nem dados sensíveis) de:
+
+[POWERSHELL]
+    wsl -l -v
+
+[UBUNTU]
+    cat /etc/os-release
+    uname -r
+    ls ~/labs/kubernetes
+
+PRÓXIMO MANUAL
+Instalação de Docker Engine, Kind, kubectl, Git e editor; criação do
+primeiro cluster Kubernetes individual.
+
+REFERÊNCIAS OFICIAIS
+- https://learn.microsoft.com/pt-br/windows/wsl/install
+- https://learn.microsoft.com/pt-br/windows/wsl/basic-commands
+- https://learn.microsoft.com/pt-br/windows/wsl/setup/environment
+- https://learn.microsoft.com/pt-br/windows/wsl/troubleshooting
+================================================================================

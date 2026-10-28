@@ -1,0 +1,157 @@
+KUBERNETES CERTIFICATION LAB — V8
+MANUAL 002 — INSTALAÇÃO DO VS CODE, GIT E ACESSO AO GITHUB
+Versão 1.0 | 28/10/2026
+Ambiente: Windows 11 + WSL2 + Ubuntu 24.04 LTS
+Escopo: preparação para estudos KCNA, KCSA e CKA.
+
+OBJETIVO
+Ao final, cada participante deverá conseguir:
+- Abrir uma pasta do Ubuntu no VS Code usando `code .`.
+- Executar Git dentro do Ubuntu.
+- Autenticar-se no GitHub com uma chave SSH individual.
+- Clonar e editar o repositório compartilhado de estudos.
+
+IMPORTANTE — ONDE CADA COMPONENTE FICA
+- Windows: VS Code (interface gráfica) e extensão WSL.
+- Ubuntu/WSL2: Git, OpenSSH, arquivos dos projetos e ferramentas do laboratório.
+- GitHub: serviço remoto para armazenar e compartilhar o repositório.
+- NÃO é necessário instalar um segundo VS Code gráfico por apt dentro do Ubuntu.
+- Cada integrante deve usar sua própria conta e chave SSH; nunca compartilhar chaves privadas.
+
+01 — INSTALAR O VS CODE NO WINDOWS
+1. No navegador do Windows, acesse https://code.visualstudio.com/download
+2. Baixe o instalador de Windows (User Installer é adequado para a maioria dos usuários).
+3. Execute o instalador; marque a opção "Add to PATH" quando aparecer.
+4. Inicie o VS Code.
+5. Abra Extensions (Ctrl+Shift+X), procure "WSL" da Microsoft e instale.
+
+02 — PREPARAR O UBUNTU WSL2
+Abra o terminal Ubuntu e execute:
+
+    sudo apt update
+    sudo apt upgrade -y
+    sudo apt install -y git openssh-client ca-certificates wget curl
+
+Valide:
+
+    git --version
+    ssh -V
+
+03 — INTEGRAR VS CODE E WSL
+No terminal Ubuntu:
+
+    mkdir -p ~/projects/kubernetes-study
+    cd ~/projects/kubernetes-study
+    code .
+
+Na primeira abertura, o VS Code pode configurar o VS Code Server no Ubuntu.
+Verifique no canto inferior esquerdo se a janela está conectada ao WSL/Ubuntu.
+No terminal integrado (Ctrl+`), confira:
+
+    pwd
+    uname -a
+    git --version
+
+Se `code` não funcionar: feche/reabra o Ubuntu, confira se o VS Code do Windows está no PATH e, no VS Code, use Ctrl+Shift+P > WSL: Connect to WSL.
+Recomendação: salve os projetos em ~/projects, e não em /mnt/c, para uso de ferramentas Linux e melhor desempenho.
+
+04 — CONFIGURAR IDENTIDADE DO GIT (DENTRO DO UBUNTU)
+Substitua pelos seus dados reais:
+
+    git config --global user.name "SEU NOME"
+    git config --global user.email "seu-email@exemplo.com"
+    git config --global init.defaultBranch main
+    git config --global core.autocrlf input
+
+Valide:
+
+    git config --global --list
+
+Utilize de preferência um e-mail associado à sua conta GitHub (pode ser o endereço noreply disponibilizado pela plataforma).
+
+05 — CRIAR UMA CHAVE SSH PARA O GITHUB
+No Ubuntu, substitua pelo e-mail associado à sua conta:
+
+    ssh-keygen -t ed25519 -C "seu-email@exemplo.com"
+
+Pressione Enter para aceitar o destino padrão (~/.ssh/id_ed25519).
+Defina uma passphrase para proteger a chave privada.
+
+Inicie o ssh-agent e adicione a chave:
+
+    eval "$(ssh-agent -s)"
+    ssh-add ~/.ssh/id_ed25519
+
+Exiba SOMENTE a chave pública:
+
+    cat ~/.ssh/id_ed25519.pub
+
+ATENÇÃO: NUNCA divulgue ~/.ssh/id_ed25519 (sem .pub). Essa é a chave privada.
+
+06 — CADASTRAR A CHAVE PÚBLICA NO GITHUB
+1. Entre em https://github.com e autentique sua conta.
+2. Vá em Settings > SSH and GPG keys > New SSH key.
+3. Digite um título que identifique o computador, por exemplo "WSL2-Kubernetes-Lab".
+4. Cole o conteúdo de ~/.ssh/id_ed25519.pub e salve.
+5. No Ubuntu execute:
+
+    ssh -T git@github.com
+
+Na primeira conexão, confirme a autenticidade do host somente após verificar a fingerprint oficial do GitHub:
+https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints
+
+Uma mensagem semelhante a "Hi USERNAME! You've successfully authenticated" confirma a autenticação; o GitHub não disponibiliza acesso de shell.
+
+07 — CLONAR O REPOSITÓRIO DE ESTUDOS
+Um integrante do grupo criará um repositório GitHub (preferencialmente privado, se houver informações internas) e convidará os demais como colaboradores.
+Após receber o endereço SSH real do repositório:
+
+    cd ~/projects
+    git clone git@github.com:ORGANIZACAO/REPOSITORIO.git
+    cd REPOSITORIO
+    code .
+
+Substitua ORGANIZACAO/REPOSITORIO pelos valores existentes no GitHub.
+Não execute `git clone` com o endereço de exemplo.
+
+08 — TESTAR O FLUXO DE TRABALHO (SEM ALTERAR A BRANCH PRINCIPAL)
+No repositório já clonado:
+
+    git switch -c setup/seu-usuario
+    mkdir -p participantes
+    printf 'Ambiente WSL2 configurado.\n' > participantes/seu-usuario.txt
+    git add participantes/seu-usuario.txt
+    git commit -m "docs: validar ambiente local de estudos"
+    git push -u origin setup/seu-usuario
+
+Substitua "seu-usuario" por seu identificador. Abra um Pull Request no GitHub para revisão dos colegas.
+Obs.: o push exige permissão no repositório; se não houver, solicite convite de colaborador ou trabalhe via fork.
+
+09 — EXTENSÕES RECOMENDADAS NO VS CODE
+Instale-as na janela remota WSL quando o VS Code oferecer essa opção:
+- YAML (Red Hat)
+- Kubernetes (Microsoft)
+- GitLens (GitKraken), opcional
+
+Outras extensões podem ser acrescentadas na fase de laboratórios.
+
+10 — CHECKLIST DE CONCLUSÃO
+[ ] VS Code instalado no Windows.
+[ ] Extensão WSL instalada.
+[ ] `code .` abre uma pasta de ~/projects no Ubuntu.
+[ ] Terminal integrado do VS Code executa comandos no Ubuntu.
+[ ] Git e SSH funcionam no Ubuntu.
+[ ] Nome/e-mail do Git configurados.
+[ ] Chave SSH individual gerada e pública cadastrada no GitHub.
+[ ] `ssh -T git@github.com` autentica com sucesso.
+[ ] Repositório de estudos clonado.
+[ ] Branch de teste criada e Pull Request enviado (se houver acesso).
+
+PRÓXIMO MANUAL
+Manual 003 — Docker Engine, Kind, kubectl e criação do primeiro cluster local.
+
+REFERÊNCIAS OFICIAIS
+https://learn.microsoft.com/pt-br/windows/wsl/tutorials/wsl-vscode
+https://code.visualstudio.com/docs/remote/wsl
+https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
+https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account
